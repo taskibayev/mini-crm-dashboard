@@ -1,0 +1,16 @@
+# clasp
+.clasp.json
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Logs
+*.log
+clasp.json
