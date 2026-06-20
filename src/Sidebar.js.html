@@ -3,30 +3,76 @@
   var loadingEl = document.getElementById('loading');
   var emptyEl = document.getElementById('empty-state');
   var debugEl = document.getElementById('debug');
+  var messageEl = document.getElementById('message');
+  var formEl = document.getElementById('add-client-form');
 
-  google.script.run
-    .withSuccessHandler(function(clients) {
-      console.log('Clients received:', clients);
+  loadClients();
 
-      if (!Array.isArray(clients)) {
-        showError('Invalid response from server');
+  if (formEl) {
+    formEl.addEventListener('submit', function(event) {
+      event.preventDefault();
+
+      var client = {
+        name: document.getElementById('client-name').value.trim(),
+        email: document.getElementById('client-email').value.trim(),
+        phone: document.getElementById('client-phone').value.trim(),
+        status: document.getElementById('client-status').value.trim(),
+        notes: document.getElementById('client-notes').value.trim()
+      };
+
+      if (!client.name) {
+        showError('Client name is required');
         return;
       }
 
-      if (loadingEl) {
-        loadingEl.hidden = true;
-      }
+      hideMessage();
+      setFormDisabled(true);
 
-      if (debugEl) {
-        debugEl.innerText = 'Loaded clients: ' + clients.length;
-      }
+      google.script.run
+        .withSuccessHandler(function(createdClient) {
+          setFormDisabled(false);
+          formEl.reset();
+          showSuccess('Client added successfully');
+          loadClients();
+        })
+        .withFailureHandler(function(error) {
+          setFormDisabled(false);
+          showError(error);
+        })
+        .addClient(client);
+    });
+  }
 
-      renderClients(clients);
-    })
-    .withFailureHandler(function(error) {
-      showError(error);
-    })
-    .getClients();
+  function loadClients() {
+    if (loadingEl) {
+      loadingEl.hidden = false;
+      loadingEl.textContent = 'Loading clients...';
+    }
+
+    google.script.run
+      .withSuccessHandler(function(clients) {
+        console.log('Clients received:', clients);
+
+        if (!Array.isArray(clients)) {
+          showError('Invalid response from server');
+          return;
+        }
+
+        if (loadingEl) {
+          loadingEl.hidden = true;
+        }
+
+        if (debugEl) {
+          debugEl.innerText = 'Loaded clients: ' + clients.length;
+        }
+
+        renderClients(clients);
+      })
+      .withFailureHandler(function(error) {
+        showError(error);
+      })
+      .getClients();
+  }
 
   function renderClients(clients) {
     var listEl = document.getElementById('clientsList');
@@ -77,11 +123,51 @@
     });
   }
 
+  function setFormDisabled(disabled) {
+    if (!formEl) {
+      return;
+    }
+
+    var fields = formEl.querySelectorAll('input, textarea, button');
+    fields.forEach(function(field) {
+      field.disabled = disabled;
+    });
+  }
+
+  function showSuccess(message) {
+    if (!messageEl) {
+      return;
+    }
+
+    messageEl.textContent = message;
+    messageEl.className = 'message success';
+    messageEl.hidden = false;
+  }
+
   function showError(error) {
     if (loadingEl) {
       loadingEl.hidden = true;
-      var message = typeof error === 'string' ? error : error.message;
+    }
+
+    var message = typeof error === 'string' ? error : (error && error.message) || 'Unknown error';
+
+    if (messageEl) {
+      messageEl.textContent = message;
+      messageEl.className = 'message error';
+      messageEl.hidden = false;
+      return;
+    }
+
+    if (loadingEl) {
       loadingEl.textContent = 'Failed to load clients: ' + message;
+    }
+  }
+
+  function hideMessage() {
+    if (messageEl) {
+      messageEl.hidden = true;
+      messageEl.textContent = '';
+      messageEl.className = 'message';
     }
   }
 })();
