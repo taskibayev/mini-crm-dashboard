@@ -115,3 +115,32 @@ function updateClient(client) {
 
   return updatedClient;
 }
+
+function deleteClient(clientId) {
+  if (!clientId) {
+    throw new Error('Client id is required');
+  }
+
+  const sheet = getSheet(getConfig().SHEETS.CLIENTS);
+  const values = sheet.getDataRange().getValues();
+  const id = Number(clientId);
+
+  let rowIndex = -1;
+  for (let i = 1; i < values.length; i++) {
+    if (Number(values[i][0]) === id) {
+      rowIndex = i + 1;
+      break;
+    }
+  }
+
+  if (rowIndex === -1) {
+    throw new Error('Client not found');
+  }
+
+  sheet.deleteRow(rowIndex);
+
+  return {
+    success: true,
+    deletedId: clientId
+  };
+}

@@ -272,6 +272,9 @@
       notesEl.className = 'client-notes';
       notesEl.textContent = client.notes || '';
 
+      var actionsEl = document.createElement('div');
+      actionsEl.className = 'client-actions';
+
       var editBtn = document.createElement('button');
       editBtn.type = 'button';
       editBtn.className = 'edit-client-btn';
@@ -280,14 +283,56 @@
         enterEditMode(client);
       });
 
+      var deleteBtn = document.createElement('button');
+      deleteBtn.type = 'button';
+      deleteBtn.className = 'delete-client-btn';
+      deleteBtn.textContent = 'Delete';
+      deleteBtn.addEventListener('click', function() {
+        handleDeleteClient(client);
+      });
+
+      actionsEl.appendChild(editBtn);
+      actionsEl.appendChild(deleteBtn);
+
       item.appendChild(nameEl);
       item.appendChild(emailEl);
       item.appendChild(phoneEl);
       item.appendChild(statusEl);
       item.appendChild(notesEl);
-      item.appendChild(editBtn);
+      item.appendChild(actionsEl);
       listEl.appendChild(item);
     });
+  }
+
+  function handleDeleteClient(client) {
+    if (!client || !client.id) {
+      return;
+    }
+
+    var confirmed = confirm(
+      'Are you sure you want to delete ' + (client.name || 'this client') + '?'
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    hideMessage();
+
+    google.script.run
+      .withSuccessHandler(function(result) {
+        var editingId = clientIdEl ? clientIdEl.value.trim() : '';
+        if (editingId && Number(editingId) === Number(client.id)) {
+          exitEditMode();
+        }
+        showSuccess('Client deleted successfully');
+        loadClients();
+        loadStats();
+      })
+      .withFailureHandler(function(error) {
+        showError(error);
+      })
+      .deleteClient(client.id);
   }
 
   function setFormDisabled(disabled) {
