@@ -1,12 +1,35 @@
 <script>
 (function() {
+  let clientsState = [];
+
   var loadingEl = document.getElementById('loading');
   var emptyEl = document.getElementById('empty-state');
+  var noMatchingEl = document.getElementById('no-matching-state');
   var debugEl = document.getElementById('debug');
   var messageEl = document.getElementById('message');
   var formEl = document.getElementById('add-client-form');
+  var searchEl = document.getElementById('client-search');
+  var formTitleEl = document.getElementById('form-title');
+  var clientIdEl = document.getElementById('client-id');
+  var submitBtnEl = document.getElementById('form-submit-btn');
+  var cancelBtnEl = document.getElementById('form-cancel-btn');
 
   loadClients();
+  loadStats();
+
+  if (cancelBtnEl) {
+    cancelBtnEl.addEventListener('click', function() {
+      exitEditMode();
+      hideMessage();
+    });
+  }
+
+  if (searchEl) {
+    searchEl.addEventListener('input', function() {
+      var filtered = filterClients(searchEl.value);
+      renderClients(filtered);
+    });
+  }
 
   if (formEl) {
     formEl.addEventListener('submit', function(event) {
@@ -25,15 +48,37 @@
         return;
       }
 
+      var clientId = clientIdEl ? clientIdEl.value.trim() : '';
+
       hideMessage();
       setFormDisabled(true);
+
+      if (clientId) {
+        client.id = Number(clientId);
+
+        google.script.run
+          .withSuccessHandler(function(updatedClient) {
+            setFormDisabled(false);
+            exitEditMode();
+            showSuccess('Client updated successfully');
+            loadClients();
+            loadStats();
+          })
+          .withFailureHandler(function(error) {
+            setFormDisabled(false);
+            showError(error);
+          })
+          .updateClient(client);
+        return;
+      }
 
       google.script.run
         .withSuccessHandler(function(createdClient) {
           setFormDisabled(false);
-          formEl.reset();
+          exitEditMode();
           showSuccess('Client added successfully');
           loadClients();
+          loadStats();
         })
         .withFailureHandler(function(error) {
           setFormDisabled(false);
@@ -41,6 +86,55 @@
         })
         .addClient(client);
     });
+  }
+
+  function enterEditMode(client) {
+    if (!client || !formEl) {
+      return;
+    }
+
+    if (clientIdEl) {
+      clientIdEl.value = client.id;
+    }
+
+    document.getElementById('client-name').value = client.name || '';
+    document.getElementById('client-email').value = client.email || '';
+    document.getElementById('client-phone').value = client.phone || '';
+    document.getElementById('client-status').value = client.status || '';
+    document.getElementById('client-notes').value = client.notes || '';
+
+    if (formTitleEl) {
+      formTitleEl.textContent = 'Edit Client';
+    }
+    if (submitBtnEl) {
+      submitBtnEl.textContent = 'Update Client';
+    }
+    if (cancelBtnEl) {
+      cancelBtnEl.hidden = false;
+    }
+
+    formEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function exitEditMode() {
+    if (!formEl) {
+      return;
+    }
+
+    formEl.reset();
+
+    if (clientIdEl) {
+      clientIdEl.value = '';
+    }
+    if (formTitleEl) {
+      formTitleEl.textContent = 'Add Client';
+    }
+    if (submitBtnEl) {
+      submitBtnEl.textContent = 'Save Client';
+    }
+    if (cancelBtnEl) {
+      cancelBtnEl.hidden = true;
+    }
   }
 
   function loadClients() {
@@ -66,7 +160,8 @@
           debugEl.innerText = 'Loaded clients: ' + clients.length;
         }
 
-        renderClients(clients);
+        clientsState = clients;
+        renderClients(clientsState);
       })
       .withFailureHandler(function(error) {
         showError(error);
@@ -74,12 +169,74 @@
       .getClients();
   }
 
+  function loadStats() {
+    google.script.run
+      .withSuccessHandler(function(stats) {
+        renderStats(stats);
+      })
+      .withFailureHandler(function(error) {
+        showError(error);
+      })
+      .getClientStats();
+  }
+
+  function renderStats(stats) {
+    if (!stats) {
+      return;
+    }
+
+    var totalEl = document.getElementById('statTotal');
+    var newEl = document.getElementById('statNew');
+    var activeEl = document.getElementById('statActive');
+    var inactiveEl = document.getElementById('statInactive');
+
+    if (totalEl) {
+      totalEl.textContent = stats.total || 0;
+    }
+    if (newEl) {
+      newEl.textContent = stats.new || 0;
+    }
+    if (activeEl) {
+      activeEl.textContent = stats.active || 0;
+    }
+    if (inactiveEl) {
+      inactiveEl.textContent = stats.inactive || 0;
+    }
+  }
+
+  function filterClients(query) {
+    var normalizedQuery = (query || '').trim().toLowerCase();
+
+    if (!normalizedQuery) {
+      return clientsState.slice();
+    }
+
+    return clientsState.filter(function(client) {
+      var fields = [
+        client.name,
+        client.email,
+        client.phone,
+        client.status,
+        client.notes
+      ];
+
+      return fields.some(function(value) {
+        return String(value || '').toLowerCase().indexOf(normalizedQuery) !== -1;
+      });
+    });
+  }
+
   function renderClients(clients) {
     var listEl = document.getElementById('clientsList');
 
+    listEl.innerHTML = '';
+
     if (!Array.isArray(clients) || clients.length === 0) {
       if (emptyEl) {
-        emptyEl.hidden = false;
+        emptyEl.hidden = clientsState.length > 0;
+      }
+      if (noMatchingEl) {
+        noMatchingEl.hidden = clientsState.length === 0;
       }
       return;
     }
@@ -87,8 +244,9 @@
     if (emptyEl) {
       emptyEl.hidden = true;
     }
-
-    listEl.innerHTML = '';
+    if (noMatchingEl) {
+      noMatchingEl.hidden = true;
+    }
 
     clients.forEach(function(client) {
       var item = document.createElement('div');
@@ -114,11 +272,20 @@
       notesEl.className = 'client-notes';
       notesEl.textContent = client.notes || '';
 
+      var editBtn = document.createElement('button');
+      editBtn.type = 'button';
+      editBtn.className = 'edit-client-btn';
+      editBtn.textContent = 'Edit';
+      editBtn.addEventListener('click', function() {
+        enterEditMode(client);
+      });
+
       item.appendChild(nameEl);
       item.appendChild(emailEl);
       item.appendChild(phoneEl);
       item.appendChild(statusEl);
       item.appendChild(notesEl);
+      item.appendChild(editBtn);
       listEl.appendChild(item);
     });
   }

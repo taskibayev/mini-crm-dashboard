@@ -11,7 +11,9 @@
 <div id="message" hidden></div>
 
 <form id="add-client-form">
-  <h3>Add Client</h3>
+  <h3 id="form-title">Add Client</h3>
+
+  <input type="hidden" id="client-id" name="clientId" value="">
 
   <label for="client-name">Name</label>
   <input type="text" id="client-name" name="name" required>
@@ -28,13 +30,40 @@
   <label for="client-notes">Notes</label>
   <textarea id="client-notes" name="notes" rows="3"></textarea>
 
-  <button type="submit">Save</button>
+  <div class="form-actions">
+    <button type="submit" id="form-submit-btn">Save Client</button>
+    <button type="button" id="form-cancel-btn" hidden>Cancel</button>
+  </div>
 </form>
 
 <div id="debug"></div>
 <div id="loading">Loading clients...</div>
+
+<div id="stats" class="stats">
+  <div class="stat-card">
+    <div class="stat-label">Total</div>
+    <div id="statTotal" class="stat-value">0</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">New</div>
+    <div id="statNew" class="stat-value">0</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Active</div>
+    <div id="statActive" class="stat-value">0</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Inactive</div>
+    <div id="statInactive" class="stat-value">0</div>
+  </div>
+</div>
+
+<label for="client-search" class="search-label">Search Clients</label>
+<input type="search" id="client-search" placeholder="Search by name, email, phone, status or notes">
+
 <div id="clientsList"></div>
 <div id="empty-state" hidden>No clients found.</div>
+<div id="no-matching-state" hidden>No matching clients found.</div>
 
 <?!= include('Sidebar.js'); ?>
 

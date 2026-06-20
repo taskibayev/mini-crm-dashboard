@@ -46,7 +46,6 @@
   }
 
   #add-client-form button {
-    margin-top: 4px;
     padding: 8px 12px;
     border: none;
     border-radius: 6px;
@@ -55,6 +54,23 @@
     font-size: 14px;
     font-weight: 500;
     cursor: pointer;
+  }
+
+  .form-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 4px;
+  }
+
+  #form-cancel-btn {
+    background: #fff;
+    color: #374151;
+    border: 1px solid #d1d5db;
+  }
+
+  #form-cancel-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
   }
 
   #add-client-form button:disabled {
@@ -84,9 +100,62 @@
   #loading {
     color: #6b7280;
     font-size: 14px;
+    margin-bottom: 12px;
   }
 
-  #empty-state {
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin-bottom: 20px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  .stat-card {
+    padding: 12px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    background: #f9fafb;
+    text-align: center;
+  }
+
+  .stat-label {
+    font-size: 12px;
+    font-weight: 500;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    margin-bottom: 4px;
+  }
+
+  .stat-value {
+    font-size: 22px;
+    font-weight: 600;
+    color: #1f2937;
+  }
+
+  .search-label {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #374151;
+  }
+
+  #client-search {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 8px 10px;
+    margin-bottom: 16px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 14px;
+    font-family: inherit;
+  }
+
+  #empty-state,
+  #no-matching-state {
     color: #6b7280;
     font-size: 14px;
     font-style: italic;
@@ -121,5 +190,21 @@
     font-size: 12px;
     color: #6b7280;
     text-transform: capitalize;
+  }
+
+  .edit-client-btn {
+    margin-top: 8px;
+    padding: 6px 10px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    background: #fff;
+    color: #374151;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+  }
+
+  .edit-client-btn:hover {
+    background: #f3f4f6;
   }
 </style>

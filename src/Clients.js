@@ -63,3 +63,55 @@ function addClient(client) {
 
   return newClient;
 }
+
+function updateClient(client) {
+  if (!client || !client.id) {
+    throw new Error('Client id is required');
+  }
+
+  if (!client.name) {
+    throw new Error('Client name is required');
+  }
+
+  const sheet = getSheet(getConfig().SHEETS.CLIENTS);
+  const values = sheet.getDataRange().getValues();
+  const clientId = Number(client.id);
+
+  let rowIndex = -1;
+  for (let i = 1; i < values.length; i++) {
+    if (Number(values[i][0]) === clientId) {
+      rowIndex = i + 1;
+      break;
+    }
+  }
+
+  if (rowIndex === -1) {
+    throw new Error('Client not found');
+  }
+
+  const now = new Date();
+  const createdAt = values[rowIndex - 1][6];
+
+  const updatedClient = {
+    id: clientId,
+    name: client.name || '',
+    email: client.email || '',
+    phone: client.phone || '',
+    status: client.status || '',
+    notes: client.notes || '',
+    createdAt: createdAt ? createdAt.toString() : '',
+    updatedAt: now.toString()
+  };
+
+  sheet.getRange(rowIndex, 2, 1, 5).setValues([[
+    updatedClient.name,
+    updatedClient.email,
+    updatedClient.phone,
+    updatedClient.status,
+    updatedClient.notes
+  ]]);
+
+  sheet.getRange(rowIndex, 8).setValue(now);
+
+  return updatedClient;
+}
