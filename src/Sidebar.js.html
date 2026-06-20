@@ -1,1 +1,88 @@
-<!-- Sidebar scripts — to be implemented. -->
+<script>
+(function() {
+  var loadingEl = document.getElementById('loading');
+  var emptyEl = document.getElementById('empty-state');
+  var debugEl = document.getElementById('debug');
+
+  google.script.run
+    .withSuccessHandler(function(clients) {
+      console.log('Clients received:', clients);
+
+      if (!Array.isArray(clients)) {
+        showError('Invalid response from server');
+        return;
+      }
+
+      if (loadingEl) {
+        loadingEl.hidden = true;
+      }
+
+      if (debugEl) {
+        debugEl.innerText = 'Loaded clients: ' + clients.length;
+      }
+
+      renderClients(clients);
+    })
+    .withFailureHandler(function(error) {
+      showError(error);
+    })
+    .getClients();
+
+  function renderClients(clients) {
+    var listEl = document.getElementById('clientsList');
+
+    if (!Array.isArray(clients) || clients.length === 0) {
+      if (emptyEl) {
+        emptyEl.hidden = false;
+      }
+      return;
+    }
+
+    if (emptyEl) {
+      emptyEl.hidden = true;
+    }
+
+    listEl.innerHTML = '';
+
+    clients.forEach(function(client) {
+      var item = document.createElement('div');
+      item.className = 'client-item';
+
+      var nameEl = document.createElement('div');
+      nameEl.className = 'client-name';
+      nameEl.textContent = client.name || '';
+
+      var emailEl = document.createElement('div');
+      emailEl.className = 'client-email';
+      emailEl.textContent = client.email || '';
+
+      var phoneEl = document.createElement('div');
+      phoneEl.className = 'client-phone';
+      phoneEl.textContent = client.phone || '';
+
+      var statusEl = document.createElement('div');
+      statusEl.className = 'client-status';
+      statusEl.textContent = client.status || '';
+
+      var notesEl = document.createElement('div');
+      notesEl.className = 'client-notes';
+      notesEl.textContent = client.notes || '';
+
+      item.appendChild(nameEl);
+      item.appendChild(emailEl);
+      item.appendChild(phoneEl);
+      item.appendChild(statusEl);
+      item.appendChild(notesEl);
+      listEl.appendChild(item);
+    });
+  }
+
+  function showError(error) {
+    if (loadingEl) {
+      loadingEl.hidden = true;
+      var message = typeof error === 'string' ? error : error.message;
+      loadingEl.textContent = 'Failed to load clients: ' + message;
+    }
+  }
+})();
+</script>

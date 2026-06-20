@@ -2,12 +2,18 @@
 <html>
 <head>
   <base target="_top">
+  <?!= include('Sidebar.css'); ?>
 </head>
 <body>
 
 <h2>Mini CRM Dashboard</h2>
 
-<p>Sidebar successfully loaded.</p>
+<div id="debug"></div>
+<div id="loading">Loading clients...</div>
+<div id="clientsList"></div>
+<div id="empty-state" hidden>No clients found.</div>
+
+<?!= include('Sidebar.js'); ?>
 
 </body>
 </html>

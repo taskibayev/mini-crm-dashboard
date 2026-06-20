@@ -9,10 +9,9 @@ function onOpen() {
 }
 
 function showSidebar() {
-  const html =
-    HtmlService.createHtmlOutputFromFile(
-      'Sidebar'
-    )
+  const html = HtmlService
+    .createTemplateFromFile('Sidebar')
+    .evaluate()
     .setTitle('Mini CRM Dashboard');
 
   SpreadsheetApp.getUi()
