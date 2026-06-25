@@ -5,7 +5,6 @@
   var loadingEl = document.getElementById('loading');
   var emptyEl = document.getElementById('empty-state');
   var noMatchingEl = document.getElementById('no-matching-state');
-  var debugEl = document.getElementById('debug');
   var messageEl = document.getElementById('message');
   var formEl = document.getElementById('add-client-form');
   var searchEl = document.getElementById('client-search');
@@ -145,8 +144,6 @@
 
     google.script.run
       .withSuccessHandler(function(clients) {
-        console.log('Clients received:', clients);
-
         if (!Array.isArray(clients)) {
           showError('Invalid response from server');
           return;
@@ -156,12 +153,10 @@
           loadingEl.hidden = true;
         }
 
-        if (debugEl) {
-          debugEl.innerText = 'Loaded clients: ' + clients.length;
-        }
-
         clientsState = clients;
-        renderClients(clientsState);
+
+        var query = searchEl ? searchEl.value.trim() : '';
+        renderClients(query ? filterClients(query) : clientsState);
       })
       .withFailureHandler(function(error) {
         showError(error);

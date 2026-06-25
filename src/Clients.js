@@ -22,6 +22,19 @@ function getClients() {
   });
 }
 
+function findClientRowIndex(sheet, clientId) {
+  const values = sheet.getDataRange().getValues();
+  const id = Number(clientId);
+
+  for (let i = 1; i < values.length; i++) {
+    if (Number(values[i][0]) === id) {
+      return i + 1;
+    }
+  }
+
+  throw new Error('Client not found');
+}
+
 function addClient(client) {
   if (!client || !client.name) {
     throw new Error('Client name is required');
@@ -76,18 +89,7 @@ function updateClient(client) {
   const sheet = getSheet(getConfig().SHEETS.CLIENTS);
   const values = sheet.getDataRange().getValues();
   const clientId = Number(client.id);
-
-  let rowIndex = -1;
-  for (let i = 1; i < values.length; i++) {
-    if (Number(values[i][0]) === clientId) {
-      rowIndex = i + 1;
-      break;
-    }
-  }
-
-  if (rowIndex === -1) {
-    throw new Error('Client not found');
-  }
+  const rowIndex = findClientRowIndex(sheet, clientId);
 
   const now = new Date();
   const createdAt = values[rowIndex - 1][6];
@@ -122,20 +124,7 @@ function deleteClient(clientId) {
   }
 
   const sheet = getSheet(getConfig().SHEETS.CLIENTS);
-  const values = sheet.getDataRange().getValues();
-  const id = Number(clientId);
-
-  let rowIndex = -1;
-  for (let i = 1; i < values.length; i++) {
-    if (Number(values[i][0]) === id) {
-      rowIndex = i + 1;
-      break;
-    }
-  }
-
-  if (rowIndex === -1) {
-    throw new Error('Client not found');
-  }
+  const rowIndex = findClientRowIndex(sheet, clientId);
 
   sheet.deleteRow(rowIndex);
 

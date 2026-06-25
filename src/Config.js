@@ -10,8 +10,7 @@ function getConfig() {
     SPREADSHEET_ID: spreadsheetId,
 
     SHEETS: {
-      CLIENTS: 'Clients',
-      LOGS: 'Logs'
+      CLIENTS: 'Clients'
     }
   };
 }

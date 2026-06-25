@@ -8,6 +8,7 @@ Thumbs.db
 # Editor
 .idea/
 .vscode/
+*.code-workspace
 *.swp
 *.swo
 
